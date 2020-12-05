@@ -10,6 +10,8 @@ export const Chessboard = () => {
     const [moves, setmoves] = useState<number[]>([])
     const [render, setrender] = useState(0);
     const [possibilities, setpossibilities] = useState(initialPossibilities);
+    const [nextmoveIndex, setNextMoveIndex] = useState(-1);
+    const [showClue, setShowClue] = useState(false);
     
     const updatepossiblities = (i: number, increment: boolean = false) => {
         let valueToAdd = -1;
@@ -26,13 +28,22 @@ export const Chessboard = () => {
         if (i % 8 > 0 && i + 15 < 64) possibilities[i+15] = possibilities[i+15] + valueToAdd;
         if (i % 8 > 0 && i - 17 >= 0) possibilities[i-17] = possibilities[i-17] + valueToAdd;
 
-        console.log(JSON.stringify(possibilities));
+
+        const allowedIndices = Array.from(new Array(64),(val,index)=>index).filter((index) => isAllowed(index));
+
+        const allowedIndicesMoves = allowedIndices.map((index) => {
+            return {index: index, moves: possibilities[index]}
+        });
+
+        if(allowedIndicesMoves && allowedIndicesMoves.length > 0) {
+            const nextMove = allowedIndicesMoves.reduce((prev, current) => { return prev.moves < current.moves ? prev : current}).index;
+            setNextMoveIndex(nextMove);
+        }
     } 
 
     const isGameOver = () => {
         for(let i =0 ;i<64; i++) {
             if(board[i] === 0 && possibilities[i] === 0 && !isAllowed(i)) {
-                alert("Game Over!");
                 return true;
             }
         }
@@ -61,13 +72,21 @@ export const Chessboard = () => {
 
     const getClassName = (index:number) => {
         let className = 'square';
-        if((index + Math.floor(index/8)) % 2 === 0) {
+        if ((index + Math.floor(index/8)) % 2 === 0) {
             className +=' black';
         }
 
-        if(isAllowed(index))
+        if (moves.length !=0 && isAllowed(index))
         {
-            className += ' active';
+            className += ' allowed';
+        }
+
+        if (showClue && index === nextmoveIndex) {
+            className += ' nextmove'
+        }
+
+        if (!isAllowed(index) && moves.indexOf(index) < 0 && possibilities[index] < 1) {
+            className += ' unreachable'
         }
     
         return className;
@@ -86,6 +105,9 @@ export const Chessboard = () => {
             setboard(new Array(64).fill(0)); 
             setpossibilities(initialPossibilities);
         }}>Reset</div>
+        <div className={'button'} onClick={() => {
+            setShowClue(!showClue);
+        }}>{showClue? 'Hide Clue' : 'Show Clue'}</div>
 
         {board.map((row, index) => {
             const div = <div className={getClassName(index)}
@@ -97,7 +119,7 @@ export const Chessboard = () => {
                 setrender(render+1);
             } }>
             {moves[moves.length - 1] !== index ? <> <div className='text'>{board[index] === 0 ? '' : board[index]}</div>
-            <div className='supertext'>{possibilities[index]}</div> </> :
+            <div className='supertext'>{}</div> </> :
             <div className='img'><img src={knight}/> </div>}
             </div>
 

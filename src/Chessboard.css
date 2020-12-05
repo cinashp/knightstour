@@ -34,14 +34,22 @@
     width: 100%;
   }
 
-  .active {
+  .allowed {
       background-color: green;
       cursor: pointer;
   }
 
+  .nextmove {
+    background-color: blue;
+  }
+
+  .unreachable {
+    background-color: red;
+  }
+
   .button {
       cursor: pointer;
-      width: 50%;
+      width: 33%;
   }
 
   .supertext {
